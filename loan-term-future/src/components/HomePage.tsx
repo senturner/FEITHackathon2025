@@ -121,6 +121,14 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 >
                   Receipt Demo
                 </Button>
+                <Button
+                    variant="outline"
+                    size="lg"
+                    className="flex-1 sm:flex-none"
+                    onClick={() => onNavigate("chatbot")}
+                >
+                  Chatbot Demo
+                </Button>
               </div>
 
               <div className="flex items-center space-x-6 pt-4">
