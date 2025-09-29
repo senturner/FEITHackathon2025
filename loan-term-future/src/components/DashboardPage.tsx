@@ -195,12 +195,6 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                   <CardTitle className="flex items-center justify-between">
                     <span>Active Loans</span>
                     <div className="flex flex-wrap gap-2">
-                      <Button size="sm" onClick={() => onNavigate("business-details")}>
-                        Business Setup
-                      </Button>
-                      <Button size="sm" onClick={() => onNavigate("recurring-uploads")}>
-                        Data Collection
-                      </Button>
                       <Button size="sm" onClick={() => onNavigate("marketplace")}>
                         <Plus className="h-4 w-4 mr-2" />
                         Request New Loan

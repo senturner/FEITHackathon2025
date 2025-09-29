@@ -19,6 +19,8 @@ import {
   Camera, Upload, FileText, Link2, Shield, Lock, Printer, Plus, Trash2
 } from "lucide-react";
 
+const WEBHOOK_URL = "https://loan-term-future.app.n8n.cloud/webhook-test/summary"
+
 interface BusinessProfilePageProps {
   onNavigate: (page: string) => void;
 }
@@ -90,6 +92,58 @@ export function BusinessProfilePage({ onNavigate }: BusinessProfilePageProps) {
     return { inflow, outflow, net, weeks: cash.filter(r => r.date).length };
   }, [cash]);
 
+  const [billFiles, setBillFiles] = useState<File[]>([]);
+  const [rentFiles, setRentFiles] = useState<File[]>([]);
+  const [invoiceFiles, setInvoiceFiles] = useState<File[]>([]);
+  const [taxInsFiles, setTaxInsFiles] = useState<File[]>([]);
+  const [ratingsFiles, setRatingsFiles] = useState<File[]>([]);   // “bank records / ratings”
+  const [bankExportFiles, setBankExportFiles] = useState<File[]>([]);
+  const [posExportFiles, setPosExportFiles] = useState<File[]>([]);
+  const [receiptBatchFiles, setReceiptBatchFiles] = useState<File[]>([]);
+
+  const appendFiles =
+  (setter: React.Dispatch<React.SetStateAction<File[]>>) =>
+  (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.length) {
+      setter((prev) => [...prev, ...Array.from(e.target.files!)]);
+      e.target.value = ""; // allow same file re-select
+    }
+  };
+
+  const onRemoveFrom =
+    (setter: React.Dispatch<React.SetStateAction<File[]>>) =>
+    (name: string) =>
+      setter((prev) => prev.filter((f) => f.name !== name));
+
+  const removeFile =
+    (setter: React.Dispatch<React.SetStateAction<File[]>>, name: string) =>
+    () =>
+      setter((prev) => prev.filter((f) => f.name !== name));
+
+  function FileChips({
+  files,
+  onRemove,
+  }: { files: File[]; onRemove: (name: string) => void }) {
+    if (!files.length) return null;
+    return (
+      <div className="flex flex-wrap gap-2 mt-2">
+        {files.map((f) => (
+          <span key={f.name} className="text-xs px-2 py-1 rounded border">
+            {f.name}
+            <button
+              type="button"
+              className="ml-1 text-muted-foreground hover:text-foreground"
+              onClick={() => onRemove(f.name)}
+              aria-label={`Remove ${f.name}`}
+            >
+              ×
+            </button>
+          </span>
+        ))}
+      </div>
+    );
+  }
+
   /** Coverage score: simple, additive, objective. */
   const dataCoverage = useMemo(() => {
     let pct = 0;
@@ -146,6 +200,145 @@ export function BusinessProfilePage({ onNavigate }: BusinessProfilePageProps) {
     setOpenSummary(true);
   };
 
+  const [submitting, setSubmitting] = useState(false);
+
+  const buildPayload = () => {
+    return {
+      payload: {
+        business: {
+          ...biz,
+          ownerFullName: kyc.fullName,
+          ownerDob: kyc.dob,
+          ownerAddress: kyc.address,
+          kycVerified: kyc.verified,
+        },
+        computed: {
+          dataCoverage,
+          totals, // { inflow, outflow, net, weeks }
+          timestamp: new Date().toISOString(),
+        },
+      },
+      context: {
+        consent,
+        connections: {
+          bankConnected,
+          posConnected,
+          ratingsUploaded,
+          receiptCount,
+        },
+        fileBlocks: [
+          { fileField: "cash_log", data: cash },
+          { fileField: "bills", data: bills },
+          { fileField: "rent", data: rent },
+          { fileField: "invoices", data: invoices },
+          { fileField: "compliance", data: compliance },
+          { fileField: "assets", data: assets },
+          { fileField: "liabilities", data: liabilities },
+          { fileField: "supplier_refs", data: supplierRefs },
+          { fileField: "community_note", data: communityNote },
+        ],
+      },
+      // Optional: light client meta for debugging
+      client: {
+        ua: typeof navigator !== "undefined" ? navigator.userAgent : "server",
+      },
+    };
+  };
+
+  const submitToWebhook = async () => {
+    if (!WEBHOOK_URL) {
+      toast.error("Missing webhook URL. Set VITE_N8N_WEBHOOK_URL in .env.local");
+      return;
+    }
+    if (!biz.businessName) {
+      toast.error("Please enter your Business Name before submitting.");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+
+      // Build multipart body (keeps your file uploads working)
+      const body = buildPayload();
+      const fd = new FormData();
+      fd.append("payload", new Blob([JSON.stringify(body)], { type: "application/json" }), "payload.json");
+      invoiceFiles.forEach((f) => fd.append("invoice_attachments", f, f.name));
+      billFiles.forEach((f) => fd.append("bill_attachments", f, f.name));
+      rentFiles.forEach((f) => fd.append("rent_attachments", f, f.name));
+      taxInsFiles.forEach((f) => fd.append("compliance_attachments", f, f.name));
+      ratingsFiles.forEach((f) => fd.append("ratings_attachments", f, f.name));
+      bankExportFiles.forEach((f) => fd.append("bank_exports", f, f.name));
+      posExportFiles.forEach((f) => fd.append("pos_exports", f, f.name));
+      receiptBatchFiles.forEach((f) => fd.append("receipt_images", f, f.name));
+
+      const res = await fetch(WEBHOOK_URL, { method: "POST", body: fd, redirect: "follow" });
+
+      if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+
+      const ct = res.headers.get("content-type") || "";
+
+      // --- Case A: webhook directly returns the PDF binary ---
+      if (ct.includes("application/pdf")) {
+        const blob = await res.blob();
+        const dispo = res.headers.get("content-disposition") || "";
+        const match = dispo.match(/filename\*?=(?:UTF-8''|")?([^;"']+)/i);
+        const filename = (match && decodeURIComponent(match[1])) || `summary-${Date.now()}.pdf`;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        toast.success(`Downloaded ${filename}`);
+        return; // don’t open the local summary modal
+      }
+
+      // --- Case B: webhook returns JSON with a signed URL to the PDF ---
+      if (ct.includes("application/json")) {
+        const data = await res.json();
+
+        // pdfUrl: direct link to PDF
+        if (typeof data.pdfUrl === "string") {
+          // Try to download/open
+          window.open(data.pdfUrl, "_blank");
+          toast.success("Opened PDF from webhook.");
+          return;
+        }
+
+        // pdf (base64 string): decode and download
+        if (typeof data.pdf === "string") {
+          const b64 = data.pdf.includes(",") ? data.pdf.split(",").pop()! : data.pdf;
+          const byteChars = atob(b64);
+          const byteNums = new Array(byteChars.length);
+          for (let i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i);
+          const blob = new Blob([new Uint8Array(byteNums)], { type: "application/pdf" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = data.filename || `summary-${Date.now()}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+          toast.success("Downloaded PDF from webhook.");
+          return;
+        }
+      }
+
+      // Fallback: if webhook didn’t return a PDF, show the local summary
+      toast.message("Webhook responded without a PDF — showing client summary.");
+      setOpenSummary(true);
+
+    } catch (err: any) {
+      console.error(err);
+      toast.error(`Submit failed: ${err?.message || "network error"}`);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+  // ===== UI =====
   // ===== UI =====
   return (
     <div className="min-h-screen bg-background">
@@ -153,10 +346,13 @@ export function BusinessProfilePage({ onNavigate }: BusinessProfilePageProps) {
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-semibold">Business Profile</h1>
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => onNavigate("dashboard")}>Back to Dashboard</Button>
-            <Button onClick={handleGenerateSummary}>
+            <Button variant="outline" onClick={() => onNavigate("dashboard")}>
+              Back to Dashboard
+            </Button>
+
+            <Button onClick={submitToWebhook} disabled={submitting}>
               <Printer className="h-4 w-4 mr-2" />
-              Generate 1-page Summary
+              {submitting ? "Submitting..." : "Generate 1-page Summary"}
             </Button>
           </div>
         </div>
@@ -246,20 +442,34 @@ export function BusinessProfilePage({ onNavigate }: BusinessProfilePageProps) {
                   <Button variant="outline" size="sm" onClick={addCashRow}><Plus className="h-4 w-4 mr-2" />Add row</Button>
                 </div>
 
-                {/* Bank/POS/Statements */}
-                <div className="grid md:grid-cols-3 gap-4">
-                  <div className="p-3 rounded-lg border">
-                    <div className="flex items-center justify-between"><div className="flex items-center gap-2"><Link2 className="h-4 w-4" /><span className="font-medium">Connect Bank</span></div><Switch checked={bankConnected} onCheckedChange={setBankConnected} /></div>
-                    <p className="text-xs text-muted-foreground mt-2">Read-only connection for statements</p>
+                {/* Upload Bank Records / Ratings */}
+                <div className="p-3 rounded-lg border">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      <span className="font-medium">Upload Bank Records / Ratings</span>
+                    </div>
+                    <Checkbox
+                      checked={ratingsUploaded}
+                      onCheckedChange={(v) => setRatingsUploaded(!!v)}
+                    />
                   </div>
-                  <div className="p-3 rounded-lg border">
-                    <div className="flex items-center justify-between"><div className="flex items-center gap-2"><Link2 className="h-4 w-4" /><span className="font-medium">Connect POS</span></div><Switch checked={posConnected} onCheckedChange={setPosConnected} /></div>
-                    <p className="text-xs text-muted-foreground mt-2">Import daily sales totals</p>
-                  </div>
-                  <div className="p-3 rounded-lg border">
-                    <div className="flex items-center justify-between"><div className="flex items-center gap-2"><FileText className="h-4 w-4" /><span className="font-medium">Upload Bank Records / Ratings</span></div><Checkbox checked={ratingsUploaded} onCheckedChange={(v) => setRatingsUploaded(!!v)} /></div>
-                    <p className="text-xs text-muted-foreground mt-2">PDF/CSV statements, bureau files</p>
-                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">PDF/CSV statements, bureau files</p>
+
+                  <label className="inline-flex mt-2">
+                    <input
+                      type="file"
+                      multiple
+                      accept=".pdf,.csv"
+                      onChange={appendFiles(setRatingsFiles)}
+                      className="hidden"
+                    />
+                    <Button variant="outline" size="sm" asChild>
+                      <span><Upload className="h-4 w-4 mr-2" />Select files</span>
+                    </Button>
+                  </label>
+
+                  <FileChips files={ratingsFiles} onRemove={onRemoveFrom(setRatingsFiles)} />
                 </div>
 
                 {/* NEW: Utilities & Telecom (recurring) */}
@@ -280,72 +490,166 @@ export function BusinessProfilePage({ onNavigate }: BusinessProfilePageProps) {
                       </div>
                     ))}
                   </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline"><Upload className="h-4 w-4 mr-2" />Upload bill PDFs/CSVs</Button>
+                  <div className="flex gap-2 items-center">
+                    <label className="inline-flex">
+                      <input
+                        type="file"
+                        multiple
+                        accept=".pdf,.csv,.xlsx,.xls"
+                        onChange={appendFiles(setBillFiles)}
+                        className="hidden"
+                      />
+                      <Button variant="outline" asChild>
+                        <span><Upload className="h-4 w-4 mr-2" />Upload bill PDFs/CSVs</span>
+                      </Button>
+                    </label>
                   </div>
+                  <FileChips files={billFiles} onRemove={removeFile(setBillFiles, "") as any} />
                 </div>
 
-                {/* NEW: Rent (recurring) */}
+                {/* Rent (recurring) */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <h4 className="font-medium">Rent Payments</h4>
-                    <Button variant="outline" size="sm" onClick={addRent}><Plus className="h-4 w-4 mr-2" />Add rent</Button>
+                    <Button variant="outline" size="sm" onClick={addRent}>
+                      <Plus className="h-4 w-4 mr-2" />Add rent
+                    </Button>
                   </div>
-                  {rent.length === 0 && <p className="text-sm text-muted-foreground">Enter landlord details or upload statements/receipts.</p>}
+
+                  {rent.length === 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      Enter landlord details or upload statements/receipts.
+                    </p>
+                  )}
+
                   <div className="space-y-2">
                     {rent.map(rw => (
                       <div key={rw.id} className="grid md:grid-cols-5 gap-2">
-                        <Input placeholder="Landlord/Agent" value={rw.landlord} onChange={(e) => setRent(p => p.map(x => x.id === rw.id ? { ...x, landlord: e.target.value } : x))} />
-                        <Input placeholder="Premises (address)" value={rw.address} onChange={(e) => setRent(p => p.map(x => x.id === rw.id ? { ...x, address: e.target.value } : x))} />
-                        <Input type="number" placeholder="Monthly $" value={rw.monthlyRent} onChange={(e) => setRent(p => p.map(x => x.id === rw.id ? { ...x, monthlyRent: e.target.value } : x))} />
-                        <Input type="date" placeholder="Last paid" value={rw.lastPaidDate} onChange={(e) => setRent(p => p.map(x => x.id === rw.id ? { ...x, lastPaidDate: e.target.value } : x))} />
-                        <Button variant="ghost" size="icon" onClick={() => removeRent(rw.id)}><Trash2 className="h-4 w-4" /></Button>
+                        <Input placeholder="Landlord/Agent" value={rw.landlord}
+                          onChange={(e) => setRent(p => p.map(x => x.id === rw.id ? { ...x, landlord: e.target.value } : x))} />
+                        <Input placeholder="Premises (address)" value={rw.address}
+                          onChange={(e) => setRent(p => p.map(x => x.id === rw.id ? { ...x, address: e.target.value } : x))} />
+                        <Input type="number" placeholder="Monthly $" value={rw.monthlyRent}
+                          onChange={(e) => setRent(p => p.map(x => x.id === rw.id ? { ...x, monthlyRent: e.target.value } : x))} />
+                        <Input type="date" placeholder="Last paid" value={rw.lastPaidDate}
+                          onChange={(e) => setRent(p => p.map(x => x.id === rw.id ? { ...x, lastPaidDate: e.target.value } : x))} />
+                        <Button variant="ghost" size="icon" onClick={() => removeRent(rw.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     ))}
                   </div>
-                  <Button variant="outline"><Upload className="h-4 w-4 mr-2" />Upload lease/receipts</Button>
+
+                  <label className="inline-flex">
+                    <input
+                      type="file"
+                      multiple
+                      accept=".pdf,.jpg,.jpeg,.png,.csv"
+                      onChange={appendFiles(setRentFiles)}
+                      className="hidden"
+                    />
+                    <Button variant="outline" asChild>
+                      <span><Upload className="h-4 w-4 mr-2" />Upload lease/receipts</span>
+                    </Button>
+                  </label>
+
+                  <FileChips files={rentFiles} onRemove={onRemoveFrom(setRentFiles)} />
                 </div>
 
-                {/* NEW: Supply-chain invoices (recurring) */}
+                {/* Supplier Invoices (recurring) */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <h4 className="font-medium">Supplier Invoices</h4>
-                    <Button variant="outline" size="sm" onClick={addInvoice}><Plus className="h-4 w-4 mr-2" />Add invoice</Button>
+                    <Button variant="outline" size="sm" onClick={addInvoice}>
+                      <Plus className="h-4 w-4 mr-2" />Add invoice
+                    </Button>
                   </div>
-                  {invoices.length === 0 && <p className="text-sm text-muted-foreground">Upload CSV/PDF exports from procurement/AP or add rows.</p>}
+
+                  {invoices.length === 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      Upload CSV/PDF exports from procurement/AP or add rows.
+                    </p>
+                  )}
+
                   <div className="space-y-2">
                     {invoices.map(i => (
                       <div key={i.id} className="grid md:grid-cols-5 gap-2">
-                        <Input placeholder="Supplier" value={i.supplier} onChange={(e) => setInvoices(p => p.map(x => x.id === i.id ? { ...x, supplier: e.target.value } : x))} />
-                        <Input type="date" placeholder="Issue date" value={i.issueDate} onChange={(e) => setInvoices(p => p.map(x => x.id === i.id ? { ...x, issueDate: e.target.value } : x))} />
-                        <Input type="number" placeholder="Amount $" value={i.amount} onChange={(e) => setInvoices(p => p.map(x => x.id === i.id ? { ...x, amount: e.target.value } : x))} />
-                        <Input type="date" placeholder="Paid date (optional)" value={i.paidDate} onChange={(e) => setInvoices(p => p.map(x => x.id === i.id ? { ...x, paidDate: e.target.value } : x))} />
-                        <Button variant="ghost" size="icon" onClick={() => removeInvoice(i.id)}><Trash2 className="h-4 w-4" /></Button>
+                        <Input placeholder="Supplier" value={i.supplier}
+                          onChange={(e) => setInvoices(p => p.map(x => x.id === i.id ? { ...x, supplier: e.target.value } : x))} />
+                        <Input type="date" placeholder="Issue date" value={i.issueDate}
+                          onChange={(e) => setInvoices(p => p.map(x => x.id === i.id ? { ...x, issueDate: e.target.value } : x))} />
+                        <Input type="number" placeholder="Amount $" value={i.amount}
+                          onChange={(e) => setInvoices(p => p.map(x => x.id === i.id ? { ...x, amount: e.target.value } : x))} />
+                        <Input type="date" placeholder="Paid date (optional)" value={i.paidDate}
+                          onChange={(e) => setInvoices(p => p.map(x => x.id === i.id ? { ...x, paidDate: e.target.value } : x))} />
+                        <Button variant="ghost" size="icon" onClick={() => removeInvoice(i.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     ))}
                   </div>
-                  <Button variant="outline"><Upload className="h-4 w-4 mr-2" />Upload invoice exports</Button>
+
+                  <label className="inline-flex">
+                    <input
+                      type="file"
+                      multiple
+                      accept=".pdf,.csv,.xlsx,.xls"
+                      onChange={appendFiles(setInvoiceFiles)}
+                      className="hidden"
+                    />
+                    <Button variant="outline" asChild>
+                      <span><Upload className="h-4 w-4 mr-2" />Upload invoice exports</span>
+                    </Button>
+                  </label>
+
+                  <FileChips files={invoiceFiles} onRemove={onRemoveFrom(setInvoiceFiles)} />
                 </div>
 
-                {/* NEW: Tax & Insurance (periodic) */}
+                {/* Tax & Insurance (periodic) */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <h4 className="font-medium">Tax & Insurance</h4>
-                    <Button variant="outline" size="sm" onClick={addCompliance}><Plus className="h-4 w-4 mr-2" />Add record</Button>
+                    <Button variant="outline" size="sm" onClick={addCompliance}>
+                      <Plus className="h-4 w-4 mr-2" />Add record
+                    </Button>
                   </div>
-                  {compliance.length === 0 && <p className="text-sm text-muted-foreground">Provide proof of active policies or recent filings.</p>}
+
+                  {compliance.length === 0 && (
+                    <p className="text-sm text-muted-foreground">Provide proof of active policies or recent filings.</p>
+                  )}
+
                   <div className="space-y-2">
                     {compliance.map(c => (
                       <div key={c.id} className="grid md:grid-cols-5 gap-2">
-                        <Input placeholder="Type: Tax or Insurance" value={c.type} onChange={(e) => setCompliance(p => p.map(x => x.id === c.id ? { ...x, type: (e.target.value as "Tax" | "Insurance") } : x))} />
-                        <Input placeholder="Reference / Policy #" value={c.ref} onChange={(e) => setCompliance(p => p.map(x => x.id === c.id ? { ...x, ref: e.target.value } : x))} />
-                        <Input placeholder="Status (current/lapsed)" value={c.status} onChange={(e) => setCompliance(p => p.map(x => x.id === c.id ? { ...x, status: (e.target.value as "current" | "lapsed") } : x))} />
-                        <Input type="date" placeholder="Valid until" value={c.validUntil} onChange={(e) => setCompliance(p => p.map(x => x.id === c.id ? { ...x, validUntil: e.target.value } : x))} />
-                        <Button variant="ghost" size="icon" onClick={() => removeCompliance(c.id)}><Trash2 className="h-4 w-4" /></Button>
+                        <Input placeholder="Type: Tax or Insurance" value={c.type}
+                          onChange={(e) => setCompliance(p => p.map(x => x.id === c.id ? { ...x, type: (e.target.value as "Tax" | "Insurance") } : x))} />
+                        <Input placeholder="Reference / Policy #" value={c.ref}
+                          onChange={(e) => setCompliance(p => p.map(x => x.id === c.id ? { ...x, ref: e.target.value } : x))} />
+                        <Input placeholder="Status (current/lapsed)" value={c.status}
+                          onChange={(e) => setCompliance(p => p.map(x => x.id === c.id ? { ...x, status: (e.target.value as "current" | "lapsed") } : x))} />
+                        <Input type="date" placeholder="Valid until" value={c.validUntil}
+                          onChange={(e) => setCompliance(p => p.map(x => x.id === c.id ? { ...x, validUntil: e.target.value } : x))} />
+                        <Button variant="ghost" size="icon" onClick={() => removeCompliance(c.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     ))}
                   </div>
-                  <Button variant="outline"><Upload className="h-4 w-4 mr-2" />Upload policy/ATO PDFs</Button>
+
+                  <label className="inline-flex">
+                    <input
+                      type="file"
+                      multiple
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={appendFiles(setTaxInsFiles)}
+                      className="hidden"
+                    />
+                    <Button variant="outline" asChild>
+                      <span><Upload className="h-4 w-4 mr-2" />Upload policy/ATO PDFs</span>
+                    </Button>
+                  </label>
+
+                  <FileChips files={taxInsFiles} onRemove={onRemoveFrom(setTaxInsFiles)} />
                 </div>
 
                 {/* Coverage */}
@@ -450,15 +754,62 @@ export function BusinessProfilePage({ onNavigate }: BusinessProfilePageProps) {
                   <Button className="h-12" onClick={() => { setReceiptCount(c => c + 1); toast.success("Receipt captured"); }}>
                     <Camera className="h-5 w-5 mr-2" /> Scan Receipt
                   </Button>
-                  <Button variant="outline" className="h-12"><Upload className="h-5 w-5 mr-2" /> Upload Batch (images/CSV)</Button>
-                  <Button variant="outline" className="h-12"><FileText className="h-5 w-5 mr-2" /> Upload Bank/POS Export</Button>
+
+                  {/* Batch receipts (images/CSV) */}
+                  <label className="inline-flex">
+                    <input
+                      type="file"
+                      multiple
+                      accept=".jpg,.jpeg,.png,.pdf,.csv"
+                      onChange={appendFiles(setReceiptBatchFiles)}
+                      className="hidden"
+                    />
+                    <Button variant="outline" className="h-12" asChild>
+                      <span><Upload className="h-5 w-5 mr-2" /> Upload Batch (images/CSV)</span>
+                    </Button>
+                  </label>
+
+                  <FileChips files={receiptBatchFiles} onRemove={onRemoveFrom(setReceiptBatchFiles)} />
+
+                  {/* Bank export */}
+                  <label className="inline-flex">
+                    <input
+                      type="file"
+                      multiple
+                      accept=".pdf,.csv,.xlsx,.xls,.ofx,.qif"
+                      onChange={appendFiles(setBankExportFiles)}
+                      className="hidden"
+                    />
+                    <Button variant="outline" className="h-12" asChild>
+                      <span><FileText className="h-5 w-5 mr-2" /> Upload Bank Export</span>
+                    </Button>
+                  </label>
+
+                  <FileChips files={bankExportFiles} onRemove={onRemoveFrom(setBankExportFiles)} />
                 </div>
+                <FileChips files={receiptBatchFiles} onRemove={removeFile(setReceiptBatchFiles, "") as any} />
+                <FileChips files={bankExportFiles} onRemove={removeFile(setBankExportFiles, "") as any} />
+
+                {/* POS export */}
+                <label className="inline-flex">
+                  <input
+                    type="file"
+                    multiple
+                    accept=".pdf,.csv,.xlsx,.xls"
+                    onChange={appendFiles(setPosExportFiles)}
+                    className="hidden"
+                  />
+                  <Button variant="outline" className="h-12" asChild>
+                    <span><FileText className="h-5 w-5 mr-2" /> Upload POS Export</span>
+                  </Button>
+                </label>
+
+                <FileChips files={posExportFiles} onRemove={onRemoveFrom(setPosExportFiles)} />
 
                 {/* Ongoing feeds for bills/rent/invoices (self-select) */}
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid md:grid-cols-2 gap-4 mt-2">
                   <div className="p-3 rounded-lg border">
                     <div className="flex items-center justify-between"><div className="flex items-center gap-2"><Link2 className="h-4 w-4" /><span className="font-medium">Connect Utility/Telecom Portal</span></div>
-                      {/* future: real connection toggle */}
                       <Switch />
                     </div>
                     <p className="text-xs text-muted-foreground mt-2">Pull new bill payments automatically.</p>
@@ -477,7 +828,7 @@ export function BusinessProfilePage({ onNavigate }: BusinessProfilePageProps) {
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-4">
+                <div className="grid md:grid-cols-3 gap-4 mt-2">
                   <div className="p-3 rounded-lg bg-muted/30">
                     <p className="text-sm">Receipts scanned (last 7 days)</p>
                     <p className="text-2xl font-bold mt-1">{receiptCount}</p>
