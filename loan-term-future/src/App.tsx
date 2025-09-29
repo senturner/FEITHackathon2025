@@ -10,6 +10,7 @@ import { ProfilePage } from "./components/ProfilePage";
 import { BusinessDetailsPage } from "./components/BusinessDetailsPage";
 import { RecurringUploadsPage } from "./components/RecurringUploadsPage";
 import { BusinessProfilePage } from "./components/BusinessProfilePage";
+import ReceiptDemoPage from "./components/ReceiptDemoPage";
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState("home");
@@ -50,6 +51,8 @@ export default function App() {
         return <ProfilePage onNavigate={handleNavigate} />;
       case "terms":
         return <ProfilePage onNavigate={handleNavigate} />;
+      case "receipt":
+        return <ReceiptDemoPage onNavigate={handleNavigate} />;
       default:
         return <HomePage onNavigate={handleNavigate} />;
     }

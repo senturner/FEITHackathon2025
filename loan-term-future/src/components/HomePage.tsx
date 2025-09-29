@@ -113,6 +113,14 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 >
                   Become a Lender
                 </Button>
+                <Button
+                    variant="outline"
+                    size="lg"
+                    className="flex-1 sm:flex-none"
+                    onClick={() => onNavigate("receipt")}
+                >
+                  Receipt Demo
+                </Button>
               </div>
 
               <div className="flex items-center space-x-6 pt-4">
@@ -134,12 +142,6 @@ export function HomePage({ onNavigate }: HomePageProps) {
                   alt="Business partnership handshake"
                   className="rounded-2xl shadow-2xl w-full h-auto"
                 />
-              </div>
-              <div className="absolute -bottom-4 -right-4 bg-primary text-primary-foreground p-4 rounded-xl shadow-xl">
-                <div className="flex items-center space-x-2">
-                  <Globe className="h-5 w-5" />
-                  <span className="text-sm font-medium">SDG 8 Aligned</span>
-                </div>
               </div>
             </div>
           </div>
