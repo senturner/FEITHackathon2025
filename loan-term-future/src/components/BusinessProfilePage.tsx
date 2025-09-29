@@ -751,26 +751,14 @@ export function BusinessProfilePage({ onNavigate }: BusinessProfilePageProps) {
               <CardHeader><CardTitle>Daily/Weekly Capture</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid md:grid-cols-3 gap-4">
-                  <Button className="h-12" onClick={() => { setReceiptCount(c => c + 1); toast.success("Receipt captured"); }}>
+                  <Button className="h-12" onClick={() => onNavigate("receipt")}>
                     <Camera className="h-5 w-5 mr-2" /> Scan Receipt
                   </Button>
 
-                  {/* Batch receipts (images/CSV) */}
-                  <label className="inline-flex">
-                    <input
-                      type="file"
-                      multiple
-                      accept=".jpg,.jpeg,.png,.pdf,.csv"
-                      onChange={appendFiles(setReceiptBatchFiles)}
-                      className="hidden"
-                    />
-                    <Button variant="outline" className="h-12" asChild>
-                      <span><Upload className="h-5 w-5 mr-2" /> Upload Batch (images/CSV)</span>
-                    </Button>
-                  </label>
+                  
+                </div>
 
-                  <FileChips files={receiptBatchFiles} onRemove={onRemoveFrom(setReceiptBatchFiles)} />
-
+                <div className="space-x-3">  {/* adds ~12px vertical space between each child */}
                   {/* Bank export */}
                   <label className="inline-flex">
                     <input
@@ -785,26 +773,30 @@ export function BusinessProfilePage({ onNavigate }: BusinessProfilePageProps) {
                     </Button>
                   </label>
 
-                  <FileChips files={bankExportFiles} onRemove={onRemoveFrom(setBankExportFiles)} />
-                </div>
-                <FileChips files={receiptBatchFiles} onRemove={removeFile(setReceiptBatchFiles, "") as any} />
-                <FileChips files={bankExportFiles} onRemove={removeFile(setBankExportFiles, "") as any} />
-
-                {/* POS export */}
-                <label className="inline-flex">
-                  <input
-                    type="file"
-                    multiple
-                    accept=".pdf,.csv,.xlsx,.xls"
-                    onChange={appendFiles(setPosExportFiles)}
-                    className="hidden"
+                  <FileChips
+                    files={bankExportFiles}
+                    onRemove={removeFile(setBankExportFiles, "") as any}
                   />
-                  <Button variant="outline" className="h-12" asChild>
-                    <span><FileText className="h-5 w-5 mr-2" /> Upload POS Export</span>
-                  </Button>
-                </label>
 
-                <FileChips files={posExportFiles} onRemove={onRemoveFrom(setPosExportFiles)} />
+                  {/* POS export */}
+                  <label className="inline-flex">
+                    <input
+                      type="file"
+                      multiple
+                      accept=".pdf,.csv,.xlsx,.xls"
+                      onChange={appendFiles(setPosExportFiles)}
+                      className="hidden"
+                    />
+                    <Button variant="outline" className="h-12" asChild>
+                      <span><FileText className="h-5 w-5 mr-2" /> Upload POS Export</span>
+                    </Button>
+                  </label>
+
+                  <FileChips
+                    files={posExportFiles}
+                    onRemove={onRemoveFrom(setPosExportFiles)}
+                  />
+                </div>
 
                 {/* Ongoing feeds for bills/rent/invoices (self-select) */}
                 <div className="grid md:grid-cols-2 gap-4 mt-2">
