@@ -150,11 +150,11 @@ export default function ReceiptDemoPage({ onNavigate }: ReceiptDemoProps) {
                 <div className="mb-8">
                     <Button
                         variant="ghost"
-                        onClick={() => onNavigate("home")}
+                        onClick={() => onNavigate("business-profile")}
                         className="mb-4"
                     >
                         <ArrowLeft className="h-4 w-4 mr-2" />
-                        Back to Home
+                        Back to Profile
                     </Button>
 
                     <div className="space-y-4">

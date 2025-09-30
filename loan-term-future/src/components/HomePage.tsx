@@ -160,16 +160,6 @@ export function HomePage({ onNavigate }: HomePageProps) {
                       variant="outline"
                       size="lg"
                       className="flex-1 sm:flex-none"
-                      onClick={() => onNavigate("receipt")}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                  >
-                    Receipt Demo
-                  </MotionButton>
-                  <MotionButton
-                      variant="outline"
-                      size="lg"
-                      className="flex-1 sm:flex-none"
                       onClick={() => onNavigate("chatbot")}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
