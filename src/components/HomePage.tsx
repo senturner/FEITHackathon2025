@@ -138,7 +138,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 <motion.div className="flex flex-col sm:flex-row gap-4" variants={fadeInUp}>
                   <MotionButton
                       size="lg"
-                      className="flex-1 sm:flex-none"
+                      className="flex-1 sm:flex-none cursor-pointer"
                       onClick={() => onNavigate("signup")}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -149,7 +149,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                   <MotionButton
                       variant="outline"
                       size="lg"
-                      className="flex-1 sm:flex-none"
+                      className="flex-1 sm:flex-none cursor-pointer"
                       onClick={() => onNavigate("signup")}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -159,7 +159,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                   <MotionButton
                       variant="outline"
                       size="lg"
-                      className="flex-1 sm:flex-none"
+                      className="flex-1 sm:flex-none cursor-pointer"
                       onClick={() => onNavigate("chatbot")}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -324,6 +324,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 <motion.div className="pt-8" variants={fadeInUp}>
                   <MotionButton
                       size="lg"
+                      className="cursor-pointer"
                       onClick={() => onNavigate("signup")}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}

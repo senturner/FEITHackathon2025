@@ -623,7 +623,7 @@ export function BusinessDetailsPage({ onNavigate }: BusinessDetailsPageProps) {
 
         <Button 
           variant="outline" 
-          className="w-full min-h-[44px]"
+          className="w-full min-h-[44px] cursor-pointer"
           onClick={() => onNavigate('recurring-uploads')}
         >
           Set up ongoing data collection
@@ -807,7 +807,7 @@ export function BusinessDetailsPage({ onNavigate }: BusinessDetailsPageProps) {
               variant="ghost" 
               size="icon" 
               onClick={() => onNavigate('dashboard')}
-              className="min-h-[44px] min-w-[44px]"
+              className="min-h-[44px] min-w-[44px] cursor-pointer"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>

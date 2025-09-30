@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { HomePage } from "./components/HomePage";
@@ -15,6 +15,16 @@ import ChatbotPage from "./components/ChatbotPage";
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState("home");
+
+  // Ensure page starts at top on initial load
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  // Scroll to top whenever currentPage changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentPage]);
 
   const handleNavigate = (page: string) => {
     setCurrentPage(page);

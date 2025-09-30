@@ -30,25 +30,25 @@ export function Footer({ onNavigate }: FooterProps) {
             <div className="space-y-2">
               <button
                 onClick={() => onNavigate("signup")}
-                className="block text-sm text-muted-foreground hover:text-primary transition-colors"
+                className="block text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer"
               >
                 Sign Up as Borrower
               </button>
               <button
                 onClick={() => onNavigate("signup")}
-                className="block text-sm text-muted-foreground hover:text-primary transition-colors"
+                className="block text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer"
               >
                 Become a Lender
               </button>
               <button
                 onClick={() => onNavigate("dashboard")}
-                className="block text-sm text-muted-foreground hover:text-primary transition-colors"
+                className="block text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer"
               >
                 Dashboard
               </button>
               <button
                 onClick={() => onNavigate("marketplace")}
-                className="block text-sm text-muted-foreground hover:text-primary transition-colors"
+                className="block text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer"
               >
                 Loan Marketplace
               </button>
@@ -61,25 +61,25 @@ export function Footer({ onNavigate }: FooterProps) {
             <div className="space-y-2">
               <button
                 onClick={() => onNavigate("about")}
-                className="block text-sm text-muted-foreground hover:text-primary transition-colors"
+                className="block text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer"
               >
                 About Us
               </button>
               <button
                 onClick={() => onNavigate("contact")}
-                className="block text-sm text-muted-foreground hover:text-primary transition-colors"
+                className="block text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer"
               >
                 Contact
               </button>
               <button
                 onClick={() => onNavigate("privacy")}
-                className="block text-sm text-muted-foreground hover:text-primary transition-colors"
+                className="block text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer"
               >
                 Privacy Policy
               </button>
               <button
                 onClick={() => onNavigate("terms")}
-                className="block text-sm text-muted-foreground hover:text-primary transition-colors"
+                className="block text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer"
               >
                 Terms of Service
               </button>

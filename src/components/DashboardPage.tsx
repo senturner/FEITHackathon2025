@@ -195,7 +195,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                   <CardTitle className="flex items-center justify-between">
                     <span>Active Loans</span>
                     <div className="flex flex-wrap gap-2">
-                      <Button size="sm" onClick={() => onNavigate("marketplace")}>
+                      <Button size="sm" className="cursor-pointer" onClick={() => onNavigate("marketplace")}>
                         <Plus className="h-4 w-4 mr-2" />
                         Request New Loan
                       </Button>
@@ -271,7 +271,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className="w-full"
+                        className="w-full cursor-pointer"
                         onClick={() => onNavigate("marketplace")}
                       >
                         View Matches
@@ -373,7 +373,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
                     <span>Active Portfolio</span>
-                    <Button size="sm" onClick={() => onNavigate("marketplace")}>
+                    <Button size="sm" className="cursor-pointer" onClick={() => onNavigate("marketplace")}>
                       <Plus className="h-4 w-4 mr-2" />
                       New Investment
                     </Button>
@@ -487,7 +487,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                     <p className="text-sm text-muted-foreground">
                       Consider investing in agriculture sector to improve portfolio balance. 3 new opportunities available.
                     </p>
-                    <Button size="sm" variant="outline" className="mt-2" onClick={() => onNavigate("marketplace")}>
+                    <Button size="sm" variant="outline" className="mt-2 cursor-pointer" onClick={() => onNavigate("marketplace")}>
                       View Opportunities
                     </Button>
                   </div>
@@ -496,7 +496,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                     <p className="text-sm text-muted-foreground">
                       Indigenous-owned tech startup seeking $15K at 16.5% return. Strong community endorsements.
                     </p>
-                    <Button size="sm" variant="outline" className="mt-2" onClick={() => onNavigate("marketplace")}>
+                    <Button size="sm" variant="outline" className="mt-2 cursor-pointer" onClick={() => onNavigate("marketplace")}>
                       Learn More
                     </Button>
                   </div>

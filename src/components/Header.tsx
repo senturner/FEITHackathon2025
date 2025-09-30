@@ -46,12 +46,15 @@ export function Header({
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-4">
-        <div className="flex items-center space-x-2">
+        <button 
+          className="flex items-center space-x-2 hover:opacity-80 transition-opacity cursor-pointer"
+          onClick={() => onNavigate("home")}
+        >
           <Brain className="h-8 w-8 text-primary" />
           <span className="font-semibold text-xl">
             UnlockGrowth Loans
           </span>
-        </div>
+        </button>
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-6">
@@ -64,7 +67,7 @@ export function Header({
               <button
                 key={item.value}
                 onClick={() => handleNavigate(item.value)}
-                className={`text-sm transition-colors hover:text-primary ${
+                className={`text-sm transition-colors hover:text-primary cursor-pointer ${
                   active
                     ? "text-primary font-medium"
                     : "text-muted-foreground"
@@ -112,7 +115,7 @@ export function Header({
                       handleNavigate(item.value);
                       setIsOpen(false);
                     }}
-                    className={`text-left py-2 px-4 rounded-md transition-colors ${
+                    className={`text-left py-2 px-4 rounded-md transition-colors cursor-pointer ${
                       active
                         ? "bg-primary/10 text-primary font-medium"
                         : "text-muted-foreground hover:text-primary"

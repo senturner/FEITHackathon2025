@@ -1,0 +1,39 @@
+# macOS specific files
+.DS_Store
+.Trashes
+._*
+.Spotlight-V100
+.TemporaryItems
+.VolumeIcon.icns
+.fseventsd
+
+# WebStorm specific files
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/ # If you ever use VS Code alongside WebStorm
+
+# Node.js / npm specific (common in WebStorm projects)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnp/
+.pnp.js
+
+# Common build artifacts and temporary files
+build/
+dist/
+out/
+tmp/
+temp/
+coverage/
+*.log
+*.swp
+*.bak
+*.swo
+
+# Environment variables
+.env
+.env.*

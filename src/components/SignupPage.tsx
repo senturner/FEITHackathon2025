@@ -219,7 +219,7 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
                 </div>
 
                 <div className="flex justify-between pt-6 border-t">
-                  <Button variant="outline" onClick={() => onNavigate("home")}>
+                  <Button variant="outline" className="cursor-pointer" onClick={() => onNavigate("home")}>
                     Back to Home
                   </Button>
                   <Button onClick={() => setBorrowerProgress(50)}>
@@ -369,7 +369,7 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
                 </div>
 
                 <div className="flex justify-between pt-6 border-t">
-                  <Button variant="outline" onClick={() => onNavigate("home")}>
+                  <Button variant="outline" className="cursor-pointer" onClick={() => onNavigate("home")}>
                     Back to Home
                   </Button>
                   <Button onClick={() => setLenderProgress(66)}>

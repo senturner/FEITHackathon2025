@@ -346,7 +346,7 @@ export function BusinessProfilePage({ onNavigate }: BusinessProfilePageProps) {
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-semibold">Business Profile</h1>
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => onNavigate("dashboard")}>
+            <Button variant="outline" className="cursor-pointer" onClick={() => onNavigate("dashboard")}>
               Back to Dashboard
             </Button>
 
@@ -363,7 +363,7 @@ export function BusinessProfilePage({ onNavigate }: BusinessProfilePageProps) {
           onClick={() => onNavigate("chatbot")}
           className="w-full md:w-1/2 mx-auto h-auto py-8 px-6 text-left justify-between items-center 
                     bg-primary text-primary-foreground shadow-lg ring-2 ring-primary/20 
-                    hover:bg-primary/90 hover:shadow-xl transition-all rounded-2xl"
+                    hover:bg-primary/90 hover:shadow-xl transition-all rounded-2xl cursor-pointer"
         >
           <span className="flex items-start gap-4">
             <Bot className="h-8 w-8 mt-0.5" />
@@ -772,7 +772,7 @@ export function BusinessProfilePage({ onNavigate }: BusinessProfilePageProps) {
               <CardHeader><CardTitle>Daily/Weekly Capture</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid md:grid-cols-3 gap-4">
-                  <Button className="h-12" onClick={() => onNavigate("receipt")}>
+                  <Button className="h-12 cursor-pointer" onClick={() => onNavigate("receipt")}>
                     <Camera className="h-5 w-5 mr-2" /> Scan Receipt
                   </Button>
 

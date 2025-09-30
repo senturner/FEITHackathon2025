@@ -357,7 +357,7 @@ export function MarketplacePage({ onNavigate }: MarketplacePageProps) {
                                     <MessageCircle className="h-4 w-4 mr-2" />
                                     Chat
                                   </MotionButton>
-                                  <MotionButton size="sm" className="flex-1" onClick={() => onNavigate("loan-details")} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}>
+                                  <MotionButton size="sm" className="flex-1 cursor-pointer" onClick={() => onNavigate("loan-details")} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}>
                                     Connect
                                     <ChevronRight className="h-4 w-4 ml-2" />
                                   </MotionButton>
@@ -485,7 +485,7 @@ export function MarketplacePage({ onNavigate }: MarketplacePageProps) {
                                     <MessageCircle className="h-4 w-4 mr-2" />
                                     Message
                                   </MotionButton>
-                                  <MotionButton size="sm" className="flex-1" onClick={() => onNavigate("loan-details")} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}>
+                                  <MotionButton size="sm" className="flex-1 cursor-pointer" onClick={() => onNavigate("loan-details")} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}>
                                     Invest
                                     <ChevronRight className="h-4 w-4 ml-2" />
                                   </MotionButton>

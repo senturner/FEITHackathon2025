@@ -432,7 +432,7 @@ export function RecurringUploadsPage({ onNavigate }: RecurringUploadsPageProps) 
               variant="ghost" 
               size="icon" 
               onClick={() => onNavigate('dashboard')}
-              className="min-h-[44px] min-w-[44px]"
+              className="min-h-[44px] min-w-[44px] cursor-pointer"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>

@@ -114,7 +114,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
             <p className="text-muted-foreground">Manage your account and privacy preferences</p>
           </div>
           
-          <Button variant="outline" onClick={() => onNavigate("dashboard")}>
+          <Button variant="outline" className="cursor-pointer" onClick={() => onNavigate("dashboard")}>
             Back to Dashboard
           </Button>
         </div>

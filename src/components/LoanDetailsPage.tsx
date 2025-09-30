@@ -99,7 +99,7 @@ export function LoanDetailsPage({ onNavigate }: LoanDetailsPageProps) {
           
           <div className="flex items-center space-x-2">
             <Badge variant="outline">{loanDetails.status}</Badge>
-            <Button variant="outline" onClick={() => onNavigate("marketplace")}>
+            <Button variant="outline" className="cursor-pointer" onClick={() => onNavigate("marketplace")}>
               Back to Marketplace
             </Button>
           </div>
@@ -435,7 +435,7 @@ export function LoanDetailsPage({ onNavigate }: LoanDetailsPageProps) {
                 <CardTitle>Take Action</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Button className="w-full" onClick={() => onNavigate("dashboard")}>
+                <Button className="w-full cursor-pointer" onClick={() => onNavigate("dashboard")}>
                   <PenTool className="h-4 w-4 mr-2" />
                   Sign Loan Agreement
                 </Button>
