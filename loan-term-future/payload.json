@@ -1,0 +1,4 @@
+{
+  "business": { "businessName": "Test Biz", "sector": "Food Service", "location": "Melbourne" },
+  "computed": { "dataCoverage": 72, "totals": { "inflow": 12000, "outflow": 9000, "net": 3000, "weeks": 8 } }
+}

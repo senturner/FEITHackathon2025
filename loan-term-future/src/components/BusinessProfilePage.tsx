@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Separator } from "./ui/separator";
 import { toast } from "sonner";
 import {
-  Camera, Upload, FileText, Link2, Shield, Lock, Printer, Plus, Trash2
+  Camera, Upload, FileText, Link2, Shield, Lock, Printer, Plus, Trash2, Bot, ArrowRight
 } from "lucide-react";
 
 const WEBHOOK_URL = "https://loan-term-future.app.n8n.cloud/webhook-test/summary"
@@ -356,6 +356,27 @@ export function BusinessProfilePage({ onNavigate }: BusinessProfilePageProps) {
             </Button>
           </div>
         </div>
+
+        <div className="mb-6">
+        <Button
+          type="button" 
+          onClick={() => onNavigate("chatbot")}
+          className="w-full md:w-1/2 mx-auto h-auto py-8 px-6 text-left justify-between items-center 
+                    bg-primary text-primary-foreground shadow-lg ring-2 ring-primary/20 
+                    hover:bg-primary/90 hover:shadow-xl transition-all rounded-2xl"
+        >
+          <span className="flex items-start gap-4">
+            <Bot className="h-8 w-8 mt-0.5" />
+            <span className="font-semibold leading-snug text-lg md:text-xl">
+              Tired or confused with difficult document submission?{" "}
+              <span className="font-bold underline decoration-primary-foreground/50 underline-offset-4">
+                Use our AI chat bot assistant
+              </span>
+            </span>
+          </span>
+          <ArrowRight className="h-8 w-8 shrink-0" />
+        </Button>
+      </div>
 
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
           <TabsList className="grid w-full grid-cols-2">
